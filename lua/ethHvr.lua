@@ -34,3 +34,22 @@ function open_window()
 	-- and finally create it with buffer attached
 	win = api.nvim_open_win(buf, true, opts)
 end
+
+---
+--- Reads the passed value and checks if it is a number
+--- If it is a number, return the value / 1e18
+--- If it is not a number, try to cast it to a number
+--- if casting fails, return nil
+---
+local function tryCast(value)
+  if value == nil then
+    return "nil"
+  elseif type(value) == "number" then
+    return value
+  elseif type(value) == "string" then
+    local casted = tonumber(value)
+  else
+    return nil
+  end
+end
+
