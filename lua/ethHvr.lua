@@ -1,15 +1,41 @@
 local api = vim.api
-local buf, win
 
-function open_window()
-	buf = api.nvim_create_buf(false, true) -- create new emtpy buffer
+local M = {}
+
+--- Converts an ethereum large number down to something more readable
+--- @param input string
+--- @param[opt=18] decimals number
+--- Note: we read the value as a string because otherwise we run into precision issues
+function M.convertToDecimal(input, decimals)
+	decimals = decimals or 18
+	-- left pad with 0s if needed
+	if #input <= decimals then
+		input = string.rep("0", decimals - #input + 1) .. input
+	end
+	-- insert decimal point
+	input = string.sub(input, 1, -decimals - 1) .. "." .. string.sub(input, -decimals)
+	-- remove trailing 0s
+	input = string.gsub(input, "%.(%d-)0*$", ".%1")
+	-- remove trailing decimal point
+	return string.gsub(input, "%.$", "")
+end
+
+function M.isNumericString(input)
+	return string.match(input, "^[%d.]+$") ~= nil
+end
+
+
+function M:open_window()
+	local buf = api.nvim_create_buf(false, true) -- create new emtpy buffer
 	api.nvim_buf_set_option(buf, "bufhidden", "wipe")
 
-	-- get the word under cursor
+	-- set lines to be converted word under cursor
+	local lines = {}
 	local cword = api.nvim_call_function("expand", { "<cword>" })
-
-	-- set the lines to be the word under cursor
-	local lines = { cword }
+	if not M.isNumericString(cword) then
+		return
+	end
+	lines[1] = M.convertToDecimal(cword)
 	api.nvim_buf_set_lines(buf, 0, -1, false, lines)
 
 	-- calculate our floating window size
@@ -32,24 +58,35 @@ function open_window()
 	}
 
 	-- and finally create it with buffer attached
-	win = api.nvim_open_win(buf, true, opts)
+	return api.nvim_open_win(buf, true, opts)
 end
 
----
---- Reads the passed value and checks if it is a number
---- If it is a number, return the value / 1e18
---- If it is not a number, try to cast it to a number
---- if casting fails, return nil
----
-local function tryCast(value)
-  if value == nil then
-    return "nil"
-  elseif type(value) == "number" then
-    return value
-  elseif type(value) == "string" then
-    local casted = tonumber(value)
-  else
-    return nil
+function M.close_window(win)
+	api.nvim_win_close(win, true)
+end
+
+function M.close_if_not_focused(win)
+	if tonumber(api.nvim_get_current_win()) ~= tonumber(win) then
+		local buf = api.nvim_win_get_buf(win)
+		M.close_window(win)
+		api.nvim_command("autocmd! WinLeave <buffer=" .. buf .. ">")
+	end
+end
+
+function M.main()
+	local win = M:open_window()
+  if not win then
+    return
   end
+	local buf = api.nvim_win_get_buf(win)
+	-- delay closing by zero seconds to give time for the window to be focused
+	api.nvim_command(
+		"autocmd WinLeave <buffer="
+			.. buf
+			.. "> lua vim.defer_fn(function() require('lua/ethHvr').close_if_not_focused("
+			.. win
+			.. ") end, 0)"
+	)
 end
 
+return M
