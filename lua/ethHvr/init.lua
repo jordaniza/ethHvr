@@ -65,11 +65,9 @@ function M.close_window(win)
 end
 
 function M.close_if_not_focused(win)
-	print("close 1")
 	if tonumber(api.nvim_get_current_win()) ~= tonumber(win) then
 		local buf = api.nvim_win_get_buf(win)
 		M.close_window(win)
-		print("close 2")
 		api.nvim_command("autocmd! WinLeave <buffer=" .. buf .. ">")
 	end
 end
