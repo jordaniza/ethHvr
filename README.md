@@ -18,6 +18,5 @@ make test
 Run this from the nvim command line when testing
 
 ```vimscript
-luafile lua/ethHvr.lua
-lua open_window()
+:lua package.loaded['ethHvr'] = nil; require('ethHvr').main()
 ```

@@ -4,7 +4,7 @@ let s:save_cpo = &cpo " save user coptions
 set cpo&vim " reset them to defaults
 
 " command to run our plugin
-command! ethHvr lua require'lua.ethHvr'.main()
+command! EthHvr lua require ('ethHvr').main()
 
 let &cpo = s:save_cpo " and restore after
 unlet s:save_cpo

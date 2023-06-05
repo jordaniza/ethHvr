@@ -1,22 +1,6 @@
-luaunit = require("luaunit")
-
---- Converts an ethereum large number down to something more readable
---- @param input string
---- @param[opt=18] decimals number
---- Note: we read the value as a string because otherwise we run into precision issues
-local function convertToDecimal(input, decimals)
-	decimals = decimals or 18
-  -- left pad with 0s if needed
-	if #input <= decimals then
-		input = string.rep("0", decimals - #input+ 1) .. input
-	end
-  -- insert decimal point
-	input = string.sub(input, 1, -decimals - 1) .. "." .. string.sub(input, -decimals)
-  -- remove trailing 0s
-	input = string.gsub(input, "%.(%d-)0*$", ".%1")
-  -- remove trailing decimal point
-	return string.gsub(input, "%.$", "")
-end
+require('lua.ethHvr.stubs')
+local luaunit = require("luaunit")
+local convertToDecimal = require("lua.ethHvr").convertToDecimal
 
 TestConvert = {}
 function TestConvert:test_weiToEth()

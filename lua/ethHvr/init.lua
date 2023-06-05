@@ -24,7 +24,6 @@ function M.isNumericString(input)
 	return string.match(input, "^[%d.]+$") ~= nil
 end
 
-
 function M:open_window()
 	local buf = api.nvim_create_buf(false, true) -- create new emtpy buffer
 	api.nvim_buf_set_option(buf, "bufhidden", "wipe")
@@ -66,24 +65,27 @@ function M.close_window(win)
 end
 
 function M.close_if_not_focused(win)
+	print("close 1")
 	if tonumber(api.nvim_get_current_win()) ~= tonumber(win) then
 		local buf = api.nvim_win_get_buf(win)
 		M.close_window(win)
+		print("close 2")
 		api.nvim_command("autocmd! WinLeave <buffer=" .. buf .. ">")
 	end
 end
 
 function M.main()
 	local win = M:open_window()
-  if not win then
-    return
-  end
+	if not win then
+		print("EthHvr: Not something we can convert")
+		return
+	end
 	local buf = api.nvim_win_get_buf(win)
 	-- delay closing by zero seconds to give time for the window to be focused
 	api.nvim_command(
 		"autocmd WinLeave <buffer="
 			.. buf
-			.. "> lua vim.defer_fn(function() require('lua/ethHvr').close_if_not_focused("
+			.. "> lua vim.defer_fn(function() require('ethHvr').close_if_not_focused("
 			.. win
 			.. ") end, 0)"
 	)
